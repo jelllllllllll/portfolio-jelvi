@@ -35,7 +35,7 @@ export const projectsData = [
     id: 2,
     title: "FinSight",
     description: "A personal web application developed to learn UI/UX, responsive design, and full stack development process. Implemented JWT Authentication and simple CRUD backend.",
-    tags: ["React", "Axios", "Recharts", "Express", "MongoDB","Git","Vercel"],
+    tags: ["React.js", "Node.js", "MongoDB Atlas", "Express", "JWT","Axios","Vercel"],
     icon: <Code2 size={22} />,
     accent: "#8E9E7E",
     accentLight: "#F2F5EF",
