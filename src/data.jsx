@@ -1,5 +1,6 @@
 import { Database, Code2, Globe } from "lucide-react";
 import project1Img from "./assets/project1.png";
+import project2Img from "./assets/project2.png";
 // 1. DATA PROFIL KAMU
 export const profileData = {
   name: "Jelvinlon",
@@ -32,13 +33,15 @@ export const projectsData = [
   },
   {
     id: 2,
-    title: "Local AI Automation Hub",
-    description: "A self-hosted orchestration layer that chains local LLMs with custom workflows, keeping every byte of data entirely on-premise.",
-    tags: ["OpenClaw", "Docker", "LLMs"],
+    title: "FinSight",
+    description: "A personal web application developed to learn UI/UX, responsive design, and full stack development process. Implemented JWT Authentication and simple CRUD backend.",
+    tags: ["React", "Axios", "Recharts", "Express", "MongoDB","Git"],
     icon: <Code2 size={22} />,
     accent: "#8E9E7E",
     accentLight: "#F2F5EF",
     delay: 120, // Animasi muncul lebih lambat 120ms
+    image: project2Img,
+    link: "https://finsight-jb.vercel.app/",
   },
   {
     id: 3,
