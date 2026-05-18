@@ -1,8 +1,67 @@
 import { useState, useEffect, useRef } from "react";
 import { Mail, FileText, ArrowUpRight, ChevronDown } from "lucide-react";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
-import { profileData, projectsData } from "./data"; 
+import { profileData, projectsData } from "./data";
 
+// ---------------------------------------------------------------------------
+// AuroraBackground — adapted from Aceternity UI, no Tailwind required
+// ---------------------------------------------------------------------------
+const AuroraBackground = ({ children, showRadialGradient = true }) => (
+  <>
+    <style>{`
+      @keyframes aurora {
+        from { background-position: 50% 50%, 50% 50%; }
+        to   { background-position: 350% 50%, 350% 50%; }
+      }
+      :root {
+        --white: #ffffff;
+        --transparent: transparent;
+        --blue-500: #3b82f6;
+        --indigo-300: #a5b4fc;
+        --blue-300: #93c5fd;
+        --violet-200: #ddd6fe;
+        --blue-400: #60a5fa;
+      }
+      .aurora-layer {
+        position: absolute;
+        inset: -10px;
+        pointer-events: none;
+        opacity: 0.45;
+        will-change: transform;
+        background-image:
+          repeating-linear-gradient(100deg, var(--white) 0%, var(--white) 7%, var(--transparent) 10%, var(--transparent) 12%, var(--white) 16%),
+          repeating-linear-gradient(100deg, var(--blue-500) 10%, var(--indigo-300) 15%, var(--blue-300) 20%, var(--violet-200) 25%, var(--blue-400) 30%);
+        background-size: 300%, 200%;
+        background-position: 50% 50%, 50% 50%;
+        filter: blur(10px) invert(1);
+        animation: aurora 60s linear infinite;
+      }
+      .aurora-layer.with-mask {
+        mask-image: radial-gradient(ellipse at 100% 0%, black 10%, transparent 70%);
+      }
+      .aurora-layer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          repeating-linear-gradient(100deg, var(--white) 0%, var(--white) 7%, var(--transparent) 10%, var(--transparent) 12%, var(--white) 16%),
+          repeating-linear-gradient(100deg, var(--blue-500) 10%, var(--indigo-300) 15%, var(--blue-300) 20%, var(--violet-200) 25%, var(--blue-400) 30%);
+        background-size: 200%, 100%;
+        background-attachment: fixed;
+        mix-blend-mode: difference;
+        animation: aurora 60s linear infinite;
+      }
+    `}</style>
+    <div style={{ position: "relative", overflow: "hidden" }}>
+      <div className={`aurora-layer${showRadialGradient ? " with-mask" : ""}`} />
+      {children}
+    </div>
+  </>
+);
+
+// ---------------------------------------------------------------------------
+// Utility hook
+// ---------------------------------------------------------------------------
 const useInView = (threshold = 0.15) => {
   const ref = useRef(null);
   const [inView, setInView] = useState(false);
@@ -14,6 +73,9 @@ const useInView = (threshold = 0.15) => {
   return [ref, inView];
 };
 
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 const Tag = ({ label, accent }) => (
   <span
     className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium tracking-wide"
@@ -64,7 +126,7 @@ const ProjectCard = ({ project }) => {
               height: "100%",
               objectFit: "cover",
               objectPosition: "center",
-              transform: hovered ? "scale(1.06)" : "scale(1)", 
+              transform: hovered ? "scale(1.06)" : "scale(1)",
               transition: "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1)",
             }}
           />
@@ -121,6 +183,28 @@ const SocialBtn = ({ icon, label, href }) => {
   );
 };
 
+function CvButton({ visible, url }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+      style={{
+        opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+        transition: `opacity 0.9s ease 0.42s, transform 0.9s ease 0.42s, background 0.3s ease, box-shadow 0.3s ease, scale 0.25s ease`,
+        display: "inline-flex", alignItems: "center", gap: "9px", padding: "13px 28px", borderRadius: "14px",
+        background: hovered ? "linear-gradient(135deg, #C9A96E 0%, #A07840 100%)" : "linear-gradient(135deg, #D4B97A 0%, #BFA060 100%)",
+        color: "white", textDecoration: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem", fontWeight: 500, letterSpacing: "0.03em",
+        boxShadow: hovered ? "0 12px 32px rgba(160,120,64,0.38), 0 4px 12px rgba(160,120,64,0.22)" : "0 4px 18px rgba(160,120,64,0.22)",
+        scale: hovered ? "1.04" : "1",
+      }}
+    >
+      <FileText size={15} /> Download CV
+    </a>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main App
+// ---------------------------------------------------------------------------
 export default function App() {
   const [heroVisible, setHeroVisible] = useState(false);
   const [projectsRef, projectsInView] = useInView(0.05);
@@ -140,6 +224,7 @@ export default function App() {
         ::-webkit-scrollbar-track { background: #EAE6D7; }
         ::-webkit-scrollbar-thumb { background: #C9B89A; border-radius: 99px; }
         body { overflow-x: hidden; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "linear-gradient(135deg, #FAF9F6 0%, #F5F1E8 35%, #EDE8DA 65%, #E8E2D0 100%)", position: "relative", overflowX: "hidden" }}>
@@ -147,50 +232,59 @@ export default function App() {
         <div style={{ position: "fixed", top: "-120px", right: "-80px", width: "480px", height: "480px", borderRadius: "50%", background: "radial-gradient(circle, rgba(210,188,145,0.18) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
         <div style={{ position: "fixed", bottom: "80px", left: "-100px", width: "360px", height: "360px", borderRadius: "50%", background: "radial-gradient(circle, rgba(175,195,165,0.14) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
+        {/* NAVIGATION */}
         <nav style={{ position: "sticky", top: 0, zIndex: 100, padding: "0 32px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(250,249,246,0.72)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderBottom: "1px solid rgba(210,195,175,0.35)" }}>
-          <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.2rem", fontWeight: 500, color: "#4A3F32", letterSpacing: "0.02em" }}>
+          <a href="#" style={{ textDecoration: "none", fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "1.2rem", fontWeight: 500, color: "#4A3F32", letterSpacing: "0.02em" }}>
             {profileData.name.toLowerCase()}<span style={{ color: "#C9A96E" }}>.</span>
-          </span>
+          </a>
           <div style={{ display: "flex", gap: "28px" }}>
-            {["Work", "About", "Contact"].map(item => (
-              <a key={item} href="#" style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#8A7E72", textDecoration: "none", letterSpacing: "0.04em", transition: "color 0.2s" }} onMouseEnter={e => e.target.style.color = "#A07840"} onMouseLeave={e => e.target.style.color = "#8A7E72"}>
-                {item}
+            {[
+              { name: "Work", target: "#work" },
+              { name: "About", target: "#about" },
+              { name: "Contact", target: "#contact" }
+            ].map(item => (
+              <a key={item.name} href={item.target} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.82rem", fontWeight: 400, color: "#8A7E72", textDecoration: "none", letterSpacing: "0.04em", transition: "color 0.2s" }} onMouseEnter={e => e.target.style.color = "#A07840"} onMouseLeave={e => e.target.style.color = "#8A7E72"}>
+                {item.name}
               </a>
             ))}
           </div>
         </nav>
 
-        <section style={{ minHeight: "calc(100vh - 60px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px 60px", position: "relative", zIndex: 1, textAlign: "center" }}>
-          <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.8s ease 0s, transform 0.8s ease 0s", display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "99px", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(210,195,175,0.6)", backdropFilter: "blur(12px)", marginBottom: "32px" }}>
-            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#8E9E7E", display: "inline-block" }} />
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.78rem", color: "#8A7E72", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>
-              {profileData.status}
-            </span>
-          </div>
+        {/* HERO / ABOUT — wrapped in AuroraBackground */}
+        <AuroraBackground showRadialGradient={true}>
+          <section id="about" style={{ minHeight: "calc(100vh - 60px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px 60px", position: "relative", zIndex: 1, textAlign: "center" }}>
+            <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(16px)", transition: "opacity 0.8s ease 0s, transform 0.8s ease 0s", display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "99px", background: "rgba(255,255,255,0.65)", border: "1px solid rgba(210,195,175,0.6)", backdropFilter: "blur(12px)", marginBottom: "32px" }}>
+              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#8E9E7E", display: "inline-block" }} />
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.78rem", color: "#8A7E72", fontWeight: 400, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                {profileData.status}
+              </span>
+            </div>
 
-          <h1 style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease 0.12s, transform 0.9s ease 0.12s", fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(3.2rem, 9vw, 7rem)", fontWeight: 300, color: "#3A3028", lineHeight: 1.0, letterSpacing: "-0.03em", marginBottom: "12px" }}>
-            Hi, I'm <span style={{ fontStyle: "italic", fontWeight: 400, background: "linear-gradient(135deg, #C9A96E 0%, #A07840 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{profileData.name}.</span>
-          </h1>
+            <h1 style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease 0.12s, transform 0.9s ease 0.12s", fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: "clamp(3.2rem, 9vw, 7rem)", fontWeight: 300, color: "#3A3028", lineHeight: 1.0, letterSpacing: "-0.03em", marginBottom: "12px" }}>
+              Hi, I'm <span style={{ fontStyle: "italic", fontWeight: 400, background: "linear-gradient(135deg, #C9A96E 0%, #A07840 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{profileData.name}.</span>
+            </h1>
 
-          <p style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease 0.22s, transform 0.9s ease 0.22s", fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(0.95rem, 2.2vw, 1.12rem)", fontWeight: 300, color: "#7A6E63", lineHeight: 1.75, maxWidth: "520px", marginBottom: "44px" }}>
-            {profileData.bio}
-          </p>
+            <p style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(24px)", transition: "opacity 0.9s ease 0.22s, transform 0.9s ease 0.22s", fontFamily: "'DM Sans', sans-serif", fontSize: "clamp(0.95rem, 2.2vw, 1.12rem)", fontWeight: 300, color: "#7A6E63", lineHeight: 1.75, maxWidth: "520px", marginBottom: "44px" }}>
+              {profileData.bio}
+            </p>
 
-          <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.9s ease 0.32s, transform 0.9s ease 0.32s", display: "flex", gap: "12px", alignItems: "center", marginBottom: "28px" }}>
-            <SocialBtn icon={<FaGithub size={18} />} label="GitHub" href={profileData.links.github} />
-            <SocialBtn icon={<FaLinkedin size={18} />} label="LinkedIn" href={profileData.links.linkedin} />
-            <SocialBtn icon={<Mail size={17} />} label="Email" href={profileData.links.email} />
-          </div>
+            <div style={{ opacity: heroVisible ? 1 : 0, transform: heroVisible ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.9s ease 0.32s, transform 0.9s ease 0.32s", display: "flex", gap: "12px", alignItems: "center", marginBottom: "28px" }}>
+              <SocialBtn icon={<FaGithub size={18} />} label="GitHub" href={profileData.links.github} />
+              <SocialBtn icon={<FaLinkedin size={18} />} label="LinkedIn" href={profileData.links.linkedin} />
+              <SocialBtn icon={<Mail size={17} />} label="Email" href={profileData.links.email} />
+            </div>
 
-          <CvButton visible={heroVisible} url={profileData.links.cvUrl} />
+            <CvButton visible={heroVisible} url={profileData.links.cvUrl} />
 
-          <div style={{ opacity: heroVisible ? 1 : 0, transition: "opacity 1.2s ease 1s", position: "absolute", bottom: "36px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
-            <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.7rem", color: "#B0A496", letterSpacing: "0.1em", textTransform: "uppercase" }}>scroll</span>
-            <ChevronDown size={14} color="#C9B89A" style={{ animation: "bounce 2s ease-in-out infinite" }} />
-          </div>
-        </section>
+            <div style={{ opacity: heroVisible ? 1 : 0, transition: "opacity 1.2s ease 1s", position: "absolute", bottom: "36px", display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.7rem", color: "#B0A496", letterSpacing: "0.1em", textTransform: "uppercase" }}>scroll</span>
+              <ChevronDown size={14} color="#C9B89A" style={{ animation: "bounce 2s ease-in-out infinite" }} />
+            </div>
+          </section>
+        </AuroraBackground>
 
-        <section ref={projectsRef} style={{ padding: "80px 24px 100px", maxWidth: "900px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+        {/* WORK SECTION */}
+        <section id="work" ref={projectsRef} style={{ padding: "80px 24px 100px", maxWidth: "900px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <div style={{ opacity: projectsInView ? 1 : 0, transform: projectsInView ? "translateY(0)" : "translateY(20px)", transition: "opacity 0.7s ease, transform 0.7s ease", marginBottom: "56px", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
               <div style={{ width: "36px", height: "1px", background: "linear-gradient(to right, transparent, #C9A96E)" }} />
@@ -205,33 +299,19 @@ export default function App() {
           </div>
         </section>
 
-        <footer style={{ borderTop: "1px solid rgba(210,195,175,0.4)", padding: "32px 24px", textAlign: "center", background: "rgba(250,249,246,0.5)", backdropFilter: "blur(8px)" }}>
+        {/* FOOTER / CONTACT */}
+        <footer id="contact" style={{ borderTop: "1px solid rgba(210,195,175,0.4)", padding: "48px 24px", textAlign: "center", background: "rgba(250,249,246,0.5)", backdropFilter: "blur(8px)" }}>
+          <div style={{ marginBottom: "24px", display: "flex", justifyContent: "center", gap: "16px" }}>
+            <a href={profileData.links.email} style={{ color: "#7A6E63", textDecoration: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem" }}>Email</a>
+            <a href={profileData.links.linkedin} style={{ color: "#7A6E63", textDecoration: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem" }}>LinkedIn</a>
+            <a href={profileData.links.github} style={{ color: "#7A6E63", textDecoration: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem" }}>GitHub</a>
+          </div>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "0.78rem", color: "#B0A496", letterSpacing: "0.04em" }}>
             Crafted with care by <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", color: "#9A8070" }}>{profileData.name}</span> · {new Date().getFullYear()}
           </p>
         </footer>
 
       </div>
-      <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }`}</style>
     </>
-  );
-}
-
-function CvButton({ visible, url }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <a href={url} target="_blank" rel="noopener noreferrer" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{
-        opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-        transition: `opacity 0.9s ease 0.42s, transform 0.9s ease 0.42s, background 0.3s ease, box-shadow 0.3s ease, scale 0.25s ease`,
-        display: "inline-flex", alignItems: "center", gap: "9px", padding: "13px 28px", borderRadius: "14px",
-        background: hovered ? "linear-gradient(135deg, #C9A96E 0%, #A07840 100%)" : "linear-gradient(135deg, #D4B97A 0%, #BFA060 100%)",
-        color: "white", textDecoration: "none", fontFamily: "'DM Sans', sans-serif", fontSize: "0.88rem", fontWeight: 500, letterSpacing: "0.03em",
-        boxShadow: hovered ? "0 12px 32px rgba(160,120,64,0.38), 0 4px 12px rgba(160,120,64,0.22)" : "0 4px 18px rgba(160,120,64,0.22)",
-        scale: hovered ? "1.04" : "1",
-      }}
-    >
-      <FileText size={15} /> Download CV
-    </a>
   );
 }
